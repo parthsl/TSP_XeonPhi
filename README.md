@@ -1,7 +1,7 @@
 # TSP_XeonPhi
-Various Techniques to optimize TSP on Xeon Phi Host Machines and also for comparing various related algortihms.
+## Various Techniques to optimize TSP on Xeon Phi Host Machines and also for comparing various related algortihms.
 
-The repo is divied in two paths:
+### The repo is divied in two paths:
 - Sequential : Contains sequential codes for each algorithms.
 - Parallel   : Should contain OpenMP and/or MPICH version of the sequential codes.
 
