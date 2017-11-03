@@ -1,7 +1,7 @@
 print("Enter filename: ")
-filename = input()
+filename = raw_input()
 print("Enter number of cities: ")
-city = int(input())
+city = int(raw_input())
 
 city = range(city)
 

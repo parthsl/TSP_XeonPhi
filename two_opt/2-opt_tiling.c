@@ -9,6 +9,14 @@
 #include<float.h>
 #include<omp.h>
 
+/*
+ * @Author : Parth Shah<parths1229@gmail.com>
+ * VNN+2opt(w/ Tiling) method combined method with OpenMP giving parallel execution of both in optimal way with distance matrix.
+ * 2-opt works in tiles of data. Each thread has their own working set and tries to swap in that workspace without waiting for other threads.
+ * 2-opt: Each thread scans for initial route and tries to find swap with maximal benefit. The final maximally benefitting edge swap among all is taken and reverses the path between two cities of that edges.
+ * Results : More faster than w/o Tiling strategy but increase in error rate. Increase in threads can give more faster result but increase in error from optimal distance too.
+ */
+
 double** G;
 
 double euclidean_dist(double x1, double y1, double x2, double y2){
@@ -97,10 +105,23 @@ int* VNN(double** G, int cities, int start){
 	return min_circuit;
 }
 
+/*
+ * Random Nearest Neighbours method to create initial route
+ * Gives higher error rate compared to VNN
+ * But is faster in run
+*/
+int* RNN(double** G, int cities, int start){
+	int* min_circuit = (int*)malloc(cities*sizeof(int));
+	#pragma omp parallel for
+	for(int i=0;i<cities;i++)min_circuit[i] = i;
+	return min_circuit;
+}
+
 inline void rev_arr(int* min_circuit,int s, int e){
 	int j= (e-s)/2;
 	#pragma omp parallel for
 	for(int i=0;i<=j;i++){
+		printf("%d\n",omp_get_num_threads());
 		int temp = min_circuit[s+i];
 		min_circuit[s+i] = min_circuit[e-i];
 		min_circuit[e-i] = temp;
@@ -144,7 +165,7 @@ void two_opt(double** G, int* min_circuit, int cities){
 		double max_change_local = 0;
 		for(;i<iend;i++){
 			int i_city = min_circuit[i];
-			for(int j=i+2;j<cities-1;j++){
+			for(int j=i+2;j<iend-1;j++){
 				int j_city = min_circuit[j];
 				int j_next_city = min_circuit[j+1];
 				int i_next_city = min_circuit[i+1];
@@ -158,29 +179,18 @@ void two_opt(double** G, int* min_circuit, int cities){
 				}
 			}
 		}
-		#pragma omp critical
-		{
-			if(max_change_local > max_change){
-				max_change = max_change_local;
-				ic = ic_local; jc = jc_local;
-			}
-		}
-	
-		#pragma omp barrier
-		
-		#pragma omp single
-		{
-			if(max_change>0){
-				rev_arr(min_circuit,ic+1,jc);	
-			}
-			else{
-				loop=false;
-			}
-		}
 
-		#pragma omp barrier
-		max_change = 0;
-		#pragma omp single
+		int j = (jc_local-ic_local-1)/2;
+
+		if(max_change_local>0){
+			for(i=0;i<=j;i++){
+				int temp = min_circuit[ic_local+1+i];
+				min_circuit[ic_local+1+i] = min_circuit[jc_local-i];
+				min_circuit[jc_local-i] = temp;
+			}
+		}
+		else break;
+
 		counter++;
 	}//while over
 }//pragma over
@@ -194,6 +204,7 @@ int main(int argc, char** argv)
 {
 	int total_cities;
 	srand(0);
+	omp_set_num_threads(12);
 	if(argc<2){fprintf(stderr,"Provide input file\n");return 0;}
         if(readGraph(argv[1],&total_cities)==EAGAIN)return EINVAL;
 

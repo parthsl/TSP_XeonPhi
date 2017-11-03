@@ -153,5 +153,6 @@ int main(int argc, char** argv)
 		printf("%lf\n",tour_length);
 	}
 	printf("Time taken = %lf\n",omp_get_wtime()-stime);
+	for(int i=0;i<total_cities;i++)printf("%d ",min_circuit[i]);
 	return 0;	
 }
