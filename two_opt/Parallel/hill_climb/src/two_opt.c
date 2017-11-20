@@ -1,10 +1,11 @@
 #include "hill_climb.h"
 
 nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
-	nd counter = 0;
+	nd counter_global = 0;
 	noopt* lock;
 	#pragma omp parallel
 	{
+		nd counter = 0;
 		nd id = omp_get_thread_num();
 		nd total_threads;
 		nd block_size;
@@ -19,7 +20,7 @@ nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
 
 		nd iend;
 		if(id==total_threads-1)
-			iend = cities;
+			iend = cities+1;
 		else iend = block_size*(id+1);
 		#pragma omp barrier
 
@@ -48,7 +49,6 @@ nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
 		}
 
 		lock[id]=block_size*id;
-		if(id==total_threads-1)lock[id]=cities;
 
 		if(id<total_threads-1) {
 
@@ -82,11 +82,40 @@ nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
 			}
 
 		}//End IF
+		else {
+			nd j = 0;
 
-		#pragma omp barrier
+			for(nd g=block_size*id+1; g<block_size*(id+1); g++) { // Runs through whole block
+				while(lock[0]<j);
+				nd j_next_city = min_circuit[j+1];
+				for(i=g; i<iend-2; i++) // runs i in whole block but taking j+1 as const
+				{
+					nd i_city = min_circuit[i];
+					nd i_next_city = min_circuit[i+1];
+					nd j_city = min_circuit[j];
+
+					double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
+					double f_dist = euclidean_dist(G[i_city],G[i_next_city]) + euclidean_dist(G[j_city],G[j_next_city]);
+					if(f_dist>s_dist) {
+						for(nd z=0; z<=(cities+j-i-1)/2; z++) {
+							nd temp = min_circuit[(i+1+z)%cities];
+							min_circuit[(i+1+z)%cities] = min_circuit[(cities+j-z)%cities];
+							min_circuit[(cities+j-z)%cities] = temp;
+						}
+						counter++;
+					}
+				}
+				j++;
+				lock[id]++;
+			}
+
+		}
+
+		#pragma omp critical
+		counter_global += counter;
 	}//pragma over
 
-	return counter;
+	return counter_global;
 }
 
 
