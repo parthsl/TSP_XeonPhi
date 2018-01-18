@@ -1,4 +1,3 @@
-#include<mpi.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
@@ -28,18 +27,20 @@ typedef long int nd;
 
 typedef volatile nd noopt;
 
+#define squared_dist(i, j) \
+	( (i.x-j.x)*(i.x-j.x) + (i.y-j.y)*(i.y-j.y))
 #define euclidean_dist(i, j) \
         sqrt( (i.x-j.x)*(i.x-j.x) + (i.y-j.y)*(i.y-j.y))
 
-void donot_optimize();
+void donot_optimize();//Used to allow loop during gcc -O3 optimization.
 
-nd readGraph(char* filename,nd* cities);
+nd readGraph(char* filename,nd* cities); //For reading graph with TSPLIB instances
 
 double find_tour_length(struct coords* G , nd* tour, nd cities);
 
-nd* VNN(struct coords* G, nd cities, nd start);
+nd* VNN(struct coords* G, nd cities, nd start);//Variable Nearest Neighbour, a.k.a. NN method
 
-nd* VNNp(struct coords* G, nd cities, nd start);
+nd* VNNp(struct coords* G, nd cities, nd start);//for Parallel calculation of Variable Nearest Neighbour route.
 
 void rev_arr(nd* min_circuit, nd s, nd e);
 
@@ -48,9 +49,3 @@ void print_tour(struct coords* G, nd* min_circuit, nd total_cities);
 nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities);
 
 nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities);
-
-void two_opt_random_swap(nd* min_circuit, nd cities, nd k);
-
-void bruteforce(struct coords* G, nd* min_circuit, nd cities);
-
-void chunk_bruteforce(struct coords* G, nd* min_circuit, nd cities, nd chunk_size);
