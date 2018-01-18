@@ -24,8 +24,8 @@ firstline = os.path.isfile(output_file)
 
 with open(output_file, "a+") as f:
 	if not firstline:
-		f.write("TSPInstance\tError Rate(%)\t\tTime of Execution\n")
+		f.write("TSPInstance\tError Rate(%)\t\tDistance\t\tTime of Execution\n\n")
 	error = "NA"
 	if od!=0:
 		error = 100*(float(dist) - float(od))/float(od)
-	f.write(tsplib+"\t\t"+ "%.2f"%round(error,2) +"\t\t"+ str(time))
+	f.write(tsplib+"\t\t"+ "%.2f"%round(error,2) +"\t\t"+ str(dist)+"\t\t"+str(time)+"\n")
