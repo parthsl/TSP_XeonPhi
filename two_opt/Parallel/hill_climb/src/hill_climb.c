@@ -27,7 +27,8 @@ int main(int argc, char** argv) // argv1 = filename argv2 = threads
 	}
 	printf("Total threads spawned:%ld\n",total_threads_available);
 	nd counter = 0;
-
+	
+>>>>>>> On branch precalculate
 	counter += two_opt_max_swap_single(G, min_circuit,total_cities);
 	tour_length = find_tour_length(G,min_circuit,total_cities);
 
