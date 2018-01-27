@@ -49,3 +49,5 @@ void print_tour(struct coords* G, nd* min_circuit, nd total_cities);
 nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities);
 
 nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities);
+
+nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities);

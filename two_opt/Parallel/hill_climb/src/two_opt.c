@@ -3,7 +3,7 @@
 nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
 	nd counter_global = 0;
 	noopt* lock;
-	#pragma omp parallel
+#pragma omp parallel
 	{
 		nd counter = 0;
 		nd id = omp_get_thread_num();
@@ -15,14 +15,14 @@ nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
 			block_size = 1;
 		else block_size = cities/total_threads;
 
-		#pragma omp single
+#pragma omp single
 		lock = (noopt*)calloc(total_threads,sizeof(noopt));
 
 		nd iend;
 		if(id==total_threads-1)
 			iend = cities+1;
 		else iend = block_size*(id+1);
-		#pragma omp barrier
+#pragma omp barrier
 
 		nd i = block_size*id;
 		double max_change_local = 0;
@@ -111,7 +111,7 @@ nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
 
 		}
 
-		#pragma omp critical
+#pragma omp critical
 		counter_global += counter;
 	}//pragma over
 
@@ -123,7 +123,7 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 	double max_change = 0;
 	nd ic,jc;
 	nd counter = 0;
-	#pragma omp parallel
+#pragma omp parallel
 	{
 		nd id = omp_get_thread_num();
 		nd ic_local, jc_local;
@@ -140,22 +140,22 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 		if(id==total_threads-1)
 			iend = cities;
 		else iend = block_size*(id+1);
-	
-                nd alpha = (1-(float)id/total_threads)*(cities-2)*(cities-3);
-                nd i = cities - ceil(( sqrt((alpha-6)*4 + 25)+5 )/2);
-                if(id==0)i = 0;
 
-                alpha =(1- (float)(id+1)/total_threads)*(cities-2)*(cities-3);
-                iend = cities - ceil(( sqrt((alpha-6)*4 + 25) +5) /2);
-                if(id+1 == total_threads)iend=cities-1;
+		nd alpha = (1-(float)id/total_threads)*(cities-2)*(cities-3);
+		nd i = cities - ceil(( sqrt((alpha-6)*4 + 25)+5 )/2);
+		if(id==0)i = 0;
+
+		alpha =(1- (float)(id+1)/total_threads)*(cities-2)*(cities-3);
+		iend = cities - ceil(( sqrt((alpha-6)*4 + 25) +5) /2);
+		if(id+1 == total_threads)iend=cities-1;
 
 		//To enter in while loop simultaniously
-		#pragma omp barrier
+#pragma omp barrier
 
 		while(loop) {
-	                alpha = (1-(float)id/total_threads)*(cities-2)*(cities-3);
-        	        i = cities - ceil(( sqrt((alpha-6)*4 + 25)+5 )/2);
-                	if(id==0)i = 0;
+			alpha = (1-(float)id/total_threads)*(cities-2)*(cities-3);
+			i = cities - ceil(( sqrt((alpha-6)*4 + 25)+5 )/2);
+			if(id==0)i = 0;
 
 			double max_change_local = 0;
 			for(; i<iend; i++) {
@@ -175,7 +175,7 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 					}
 				}
 			}
-			#pragma omp critical
+#pragma omp critical
 			{
 				if(max_change_local > max_change) {
 					max_change = max_change_local;
@@ -184,15 +184,15 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 				}
 			}
 
-			#pragma omp barrier
+#pragma omp barrier
 
 			static nd j;
-			#pragma omp single
+#pragma omp single
 			j = (jc-ic-1)/2;
 
-			#pragma omp barrier
+#pragma omp barrier
 			if(max_change>0) {
-				#pragma omp for
+#pragma omp for
 				for(i=0; i<=j; i++) {
 					nd temp = min_circuit[ic+1+i];
 					min_circuit[ic+1+i] = min_circuit[jc-i];
@@ -201,9 +201,9 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 			}
 			else loop=false;
 
-			#pragma omp barrier
+#pragma omp barrier
 			max_change = 0;
-			#pragma omp single
+#pragma omp single
 			counter++;
 		}//while over
 	}//pragma over
@@ -225,3 +225,63 @@ void two_opt_random_swap(nd* min_circuit, nd cities, nd k) {
 		}
 	}
 }
+
+
+nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
+	double max_change = 0;
+	nd counter = 0;
+	bool loop = true;
+	nd ic = 0,jc = 0;
+	double precal_distance[cities-1];
+
+	for(nd i=0;i<cities-1;i++){
+		precal_distance[i] = squared_dist(G[min_circuit[i]],G[min_circuit[i+1]]);
+	}
+
+	while(loop) {
+		
+		nd i=0,j = 0;
+		for(; i<cities-2; i++) {
+			nd i_city = min_circuit[i];
+			for(j=i+2; j<cities-1; j++) {
+				nd j_city = min_circuit[j];
+				nd j_next_city = min_circuit[j+1];
+				nd i_next_city = min_circuit[i+1];
+				double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
+				double f_dist = precal_distance[i]+precal_distance[j];//squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
+				if(f_dist>s_dist) {
+					if(f_dist-s_dist > max_change) {
+						max_change = f_dist-s_dist;
+						ic = i;
+						jc = j;
+					}
+				}
+			}
+		}
+			
+		j = (jc-ic-1)/2;
+
+
+		if(max_change>0) {
+			for(i=0; i<=j; i++) {
+				nd temp = min_circuit[ic+1+i];
+				min_circuit[ic+1+i] = min_circuit[jc-i];
+				min_circuit[jc-i] = temp;
+			}
+			for(i=0;i<=j;i++){
+				nd temp = precal_distance[ic+i];
+				precal_distance[ic+i] = precal_distance[jc-i];
+				precal_distance[jc-i] = temp;
+			}
+			precal_distance[ic] = squared_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
+			precal_distance[jc] = squared_dist(G[min_circuit[jc]],G[min_circuit[jc+1]]);
+		}
+		else loop=false;
+
+		max_change = 0;
+		counter++;
+	}//while over
+
+	return counter;
+}
+
