@@ -216,7 +216,7 @@ void two_opt_random_swap(nd* min_circuit, nd cities, nd k) {
 	for(nd iter=0; iter<k; iter++) {
 		nd i = rand()%cities;
 		nd j = rand()%cities;
-		printf("%ld %ld\n",i,j);
+		printf("%ld%ld\n",i,j);
 
 		for(nd z=0; z<=(j-i-1)/2; z++) {
 			nd temp = min_circuit[i+1+z];
@@ -228,60 +228,83 @@ void two_opt_random_swap(nd* min_circuit, nd cities, nd k) {
 
 
 nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
-        double max_change = 0;
-        nd counter = 0;
-        bool loop = true;
-        nd ic = 0,jc = 0;
-        double precal_distance[cities-1];
+       	double max_change = 0;
+	nd counter = 0;
+	bool loop = true;
+	nd ic = 0,jc = 0;
+	const long long int WSS = 8;//Working Set Size
 
-        for(nd i=0;i<cities-1;i++){
-                precal_distance[i] = squared_dist(G[min_circuit[i]],G[min_circuit[i+1]]);
-        }
+	double precal_distance[cities-1];
 
-        while(loop) {
+	for(nd i=0;i<cities-1;i++){
+		precal_distance[i] = squared_dist(G[min_circuit[i]],G[min_circuit[i+1]]);
+	}
 
-                nd i=0,j = 0;
-                for(; i<cities-2; i++) {
-                        nd i_city = min_circuit[i];
-                        for(j=i+2; j<cities-1; j++) {
-                                nd j_city = min_circuit[j];
-                                nd j_next_city = min_circuit[j+1];
-                                nd i_next_city = min_circuit[i+1];
-                                double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
-                                double f_dist = precal_distance[i]+precal_distance[j];//squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
-                                if(f_dist>s_dist) {
-                                        if(f_dist-s_dist > max_change) {
-                                                max_change = f_dist-s_dist;
-                                                ic = i;
-                                                jc = j;
-                                        }
-                                }
-                        }
-                }
+	while(loop) {
+		
+		nd i=0,j = 0;
+		
+		double avx_ed[WSS];
+		double avx_pre[WSS];
+		for(; i<cities-2; i++) {
+			nd i_city = min_circuit[i];
+			nd i_next_city = min_circuit[i+1];
+			for(j=i+2; j<(cities-1-WSS); j+=WSS){
+				for(nd jj=0; jj<WSS; jj++){
+					avx_ed[jj] = squared_dist(G[i_city],G[min_circuit[j+jj]]) + squared_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
+				}
+				for(nd jj=0;jj<WSS;jj++){
+					avx_pre[jj] = precal_distance[i] + precal_distance[j+jj];
+				}
+				for(nd jj=0; jj<WSS; jj++){
+					avx_pre[jj] = avx_pre[jj] - avx_ed[jj];
+				}
+				for(nd jj=0; jj<WSS; jj++){
+					if(avx_pre[jj] > max_change){
+						max_change = avx_pre[jj];
+						ic = i;
+						jc = j+jj;
+					}
+				}
+			}
+			for(; j<cities-1; j++) {
+				nd j_city = min_circuit[j];
+				nd j_next_city = min_circuit[j+1];
+				double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
+				double f_dist = precal_distance[i]+precal_distance[j];//squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
+				if(f_dist>s_dist) {
+					if(f_dist-s_dist > max_change) {
+						max_change = f_dist-s_dist;
+						ic = i;
+						jc = j;
+					}
+				}
+			}
+		}
 
-                j = (jc-ic-1)/2;
+		j = (jc-ic-1)/2;
 
 
-                if(max_change>0) {
-                        for(i=0; i<=j; i++) {
-                                nd temp = min_circuit[ic+1+i];
-                                min_circuit[ic+1+i] = min_circuit[jc-i];
-                                min_circuit[jc-i] = temp;
-                        }
-                        for(i=0;i<=j;i++){
-                                nd temp = precal_distance[ic+i];
-                                precal_distance[ic+i] = precal_distance[jc-i];
-                                precal_distance[jc-i] = temp;
-                        }
-                        precal_distance[ic] = squared_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
-                        precal_distance[jc] = squared_dist(G[min_circuit[jc]],G[min_circuit[jc+1]]);
-                }
-                else loop=false;
+		if(max_change>0) {
+			for(i=0; i<=j; i++) {
+				nd temp = min_circuit[ic+1+i];
+				min_circuit[ic+1+i] = min_circuit[jc-i];
+				min_circuit[jc-i] = temp;
+			}
+			for(i=0;i<=j;i++){
+				nd temp = precal_distance[ic+i];
+				precal_distance[ic+i] = precal_distance[jc-i];
+				precal_distance[jc-i] = temp;
+			}
+			precal_distance[ic] = squared_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
+			precal_distance[jc] = squared_dist(G[min_circuit[jc]],G[min_circuit[jc+1]]);
+		}
+		else loop=false;
 
-                max_change = 0;
-                counter++;
-        }//while over
+		max_change = 0;
+		counter++;
+	}//while over
 
-        return counter;
+	return counter;
 }
 
