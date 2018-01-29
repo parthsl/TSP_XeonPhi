@@ -33,8 +33,8 @@ nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
 				nd j_city = min_circuit[j];
 				nd j_next_city = min_circuit[j+1];
 				nd i_next_city = min_circuit[i+1];
-				double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
-				double f_dist = squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
+				double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
+				double f_dist = euclidean_dist(G[i_city],G[i_next_city]) + euclidean_dist(G[j_city],G[j_next_city]);
 				if(f_dist>s_dist) {
 					if(f_dist-s_dist > max_change_local) {
 						for(nd z=0; z<=(j-i-1)/2; z++) {
@@ -64,8 +64,8 @@ nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
 					nd i_next_city = min_circuit[i+1];
 					nd j_city = min_circuit[j];
 
-					double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
-					double f_dist = squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
+					double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
+					double f_dist = euclidean_dist(G[i_city],G[i_next_city]) + euclidean_dist(G[j_city],G[j_next_city]);
 					if(f_dist>s_dist) {
 						if(f_dist-s_dist > max_change_local) {
 							for(nd z=0; z<=(j-i-1)/2; z++) {
@@ -94,8 +94,8 @@ nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
 					nd i_next_city = min_circuit[i+1];
 					nd j_city = min_circuit[j];
 
-					double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
-					double f_dist = squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
+					double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
+					double f_dist = euclidean_dist(G[i_city],G[i_next_city]) + euclidean_dist(G[j_city],G[j_next_city]);
 					if(f_dist>s_dist) {
 						for(nd z=0; z<=(cities+j-i-1)/2; z++) {
 							nd temp = min_circuit[(i+1+z)%cities];
@@ -164,8 +164,8 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 							nd j_city = min_circuit[g];
 		                                        nd j_next_city = min_circuit[g+1];
 		                                        nd i_next_city = min_circuit[z+1];
-                		                        double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
-                                		        double f_dist = squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
+                		                        double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
+                                		        double f_dist = euclidean_dist(G[i_city],G[i_next_city]) + euclidean_dist(G[j_city],G[j_next_city]);
 		                                        if(f_dist>s_dist) {
                 		                                if(f_dist-s_dist > max_change_local) {
                                 		                        max_change_local = f_dist-s_dist;
@@ -183,8 +183,8 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 						nd j_city = min_circuit[g];
                                                 nd j_next_city = min_circuit[g+1];
                                                 nd i_next_city = min_circuit[z+1];
-                                                double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
-                                                double f_dist = squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
+                                                double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
+                                                double f_dist = euclidean_dist(G[i_city],G[i_next_city]) + euclidean_dist(G[j_city],G[j_next_city]);
                                                 if(f_dist>s_dist) {
                                                         if(f_dist-s_dist > max_change_local) {
                                                                 max_change_local = f_dist-s_dist;
@@ -201,8 +201,8 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 					nd j_city = min_circuit[j];
                                         nd j_next_city = min_circuit[j+1];
                                         nd i_next_city = min_circuit[i+1];
-                                        double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
-                                        double f_dist = squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
+                                        double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
+                                        double f_dist = euclidean_dist(G[i_city],G[i_next_city]) + euclidean_dist(G[j_city],G[j_next_city]);
                                         if(f_dist>s_dist) {
                                                 if(f_dist-s_dist > max_change_local) {
                                                         max_change_local = f_dist-s_dist;

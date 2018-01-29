@@ -11,8 +11,8 @@ all: 2opt
 debug: CFLAGS += -g -D DEBUG
 debug: 2opt
 
-2opt: lib/hill_climb.h $(DEP) src/hill_climb.c
-	$(CC) -o $@ $? $(CFLAGS) -I./lib/ -Wall $(OPT)
+2opt: $(DEP) src/hill_climb.c
+	$(CC) -o $@ $? $(CFLAGS) -g -I./lib/ -Wall $(OPT)
 
 clean:
 	rm -f $(objects)
