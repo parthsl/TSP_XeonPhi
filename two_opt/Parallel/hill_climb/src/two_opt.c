@@ -225,3 +225,51 @@ void two_opt_random_swap(nd* min_circuit, nd cities, nd k) {
 		}
 	}
 }
+
+
+nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
+        double max_change = 0;
+        nd counter = 0;
+        bool loop = true;
+        nd ic = 0,jc = 0;
+
+        while(loop) {
+
+                nd i=0,j = 0;
+                for(; i<cities-2; i++) {
+                        nd i_city = min_circuit[i];
+                        nd i_next_city = min_circuit[i+1];
+                        for(j=i+2; j<cities-1; j++) {
+                                nd j_city = min_circuit[j];
+                                nd j_next_city = min_circuit[j+1];
+                                double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
+                                double f_dist = squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
+                                if(f_dist>s_dist) {
+                                        if(f_dist-s_dist > max_change) {
+                                                max_change = f_dist-s_dist;
+                                                ic = i;
+                                                jc = j;
+                                        }
+                                }
+                        }
+                }
+
+                j = (jc-ic-1)/2;
+
+
+                if(max_change>0) {
+                        for(i=0; i<=j; i++) {
+                                nd temp = min_circuit[ic+1+i];
+                                min_circuit[ic+1+i] = min_circuit[jc-i];
+                                min_circuit[jc-i] = temp;
+                        }
+                }
+                else loop=false;
+
+                max_change = 0;
+                counter++;
+        }//while over
+
+        return counter;
+}
+
