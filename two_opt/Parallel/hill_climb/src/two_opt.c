@@ -216,7 +216,7 @@ void two_opt_random_swap(nd* min_circuit, nd cities, nd k) {
 	for(nd iter=0; iter<k; iter++) {
 		nd i = rand()%cities;
 		nd j = rand()%cities;
-		printf("%ld %ld\n",i,j);
+		printf("%ld%ld\n",i,j);
 
 		for(nd z=0; z<=(j-i-1)/2; z++) {
 			nd temp = min_circuit[i+1+z];
@@ -232,6 +232,8 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 	nd counter = 0;
 	bool loop = true;
 	nd ic = 0,jc = 0;
+	const long long int WSS = 8;//Working Set Size
+
 	double precal_distance[cities-1];
 
 	for(nd i=0;i<cities-1;i++){
@@ -241,12 +243,33 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 	while(loop) {
 		
 		nd i=0,j = 0;
+		
+		double avx_ed[WSS];
+		double avx_pre[WSS];
 		for(; i<cities-2; i++) {
 			nd i_city = min_circuit[i];
-			for(j=i+2; j<cities-1; j++) {
+			nd i_next_city = min_circuit[i+1];
+			for(j=i+2; j<(cities-1-WSS); j+=WSS){
+				for(nd jj=0; jj<WSS; jj++){
+					avx_ed[jj] = squared_dist(G[i_city],G[min_circuit[j+jj]]) + squared_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
+				}
+				for(nd jj=0;jj<WSS;jj++){
+					avx_pre[jj] = precal_distance[i] + precal_distance[j+jj];
+				}
+				for(nd jj=0; jj<WSS; jj++){
+					avx_pre[jj] = avx_pre[jj] - avx_ed[jj];
+				}
+				for(nd jj=0; jj<WSS; jj++){
+					if(avx_pre[jj] > max_change){
+						max_change = avx_pre[jj];
+						ic = i;
+						jc = j+jj;
+					}
+				}
+			}
+			for(; j<cities-1; j++) {
 				nd j_city = min_circuit[j];
 				nd j_next_city = min_circuit[j+1];
-				nd i_next_city = min_circuit[i+1];
 				double s_dist = squared_dist(G[i_city],G[j_city]) + squared_dist(G[i_next_city],G[j_next_city]);
 				double f_dist = precal_distance[i]+precal_distance[j];//squared_dist(G[i_city],G[i_next_city]) + squared_dist(G[j_city],G[j_next_city]);
 				if(f_dist>s_dist) {
@@ -258,7 +281,7 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 				}
 			}
 		}
-			
+
 		j = (jc-ic-1)/2;
 
 
