@@ -2,9 +2,9 @@ CC = gcc
 LIBDIR = lib
 SRCDIR = src
 CFLAGS = -lm -fopenmp
-WALL = -WALL
-objects := 2opt 2opt_Pr
-DEP = src/two_opt.c src/vnn.c src/util.c src/bruteforcer.c
+OPT = -O3
+objects := 2opt
+DEP = src/two_opt.c src/vnn.c src/util.c
 
 all: 2opt
 
@@ -12,10 +12,7 @@ debug: CFLAGS += -g -D DEBUG
 debug: 2opt
 
 2opt: lib/hill_climb.h $(DEP) src/hill_climb.c
-	$(CC) -o $@ $? $(CFLAGS) -I./lib/ -Wall
-
-2opt_Pr: lib/hill_climb.h $(DEP) src/hill_climb_with_Pr.c
-	$(CC) -o $@ $? $(CFLAGS) -I./lib/ -Wall
+	$(CC) -o $@ $? $(CFLAGS) -I./lib/ -Wall $(OPT)
 
 clean:
 	rm -f $(objects)
