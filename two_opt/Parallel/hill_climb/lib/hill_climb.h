@@ -28,7 +28,7 @@ typedef long int nd;
 typedef volatile nd noopt;
 
 #define squared_dist(i, j) \
-	( (i.x-j.x)*(i.x-j.x) + (i.y-j.y)*(i.y-j.y))
+	sqrt( (i.x-j.x)*(i.x-j.x) + (i.y-j.y)*(i.y-j.y))
 #define euclidean_dist(i, j) \
         sqrt( (i.x-j.x)*(i.x-j.x) + (i.y-j.y)*(i.y-j.y))
 
