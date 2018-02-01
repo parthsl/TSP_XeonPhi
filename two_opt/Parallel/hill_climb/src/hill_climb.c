@@ -20,12 +20,6 @@ int main(int argc, char** argv) // argv1 = filename argv2 = threads
 	
 //---------------------------------------------------------------------------------------------------//
 
-	nd total_threads_available=1;
-	#pragma omp parallel 
-	{
-		total_threads_available = omp_get_num_threads();
-	}
-	printf("Total threads spawned:%ld\n",total_threads_available);
 	nd counter = 0;
 	
 	counter += two_opt_max_swap_single(G, min_circuit,total_cities);
