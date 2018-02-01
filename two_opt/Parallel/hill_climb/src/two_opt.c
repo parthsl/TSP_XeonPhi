@@ -233,13 +233,15 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 	bool loop = true;
 	nd ic = 0,jc = 0;
 	const long long int WSS = 8;//Working Set Size
+	int wss = (int)cities;
 
-	double precal_distance[cities-1];
+	double precal_distance[cities];
 
 	for(nd i=0;i<cities-1;i++){
-		precal_distance[i] = euclidean_dist(G[min_circuit[i]],G[min_circuit[i+1]]);
+		precal_distance[i] = squared_dist(G[min_circuit[i]],G[min_circuit[i+1]]);
 	}
-
+	vsqrt(precal_distance, precal_distance, &wss);
+	wss = 8;
 	while(loop) {
 		
 		nd i=0,j = 0;
@@ -251,8 +253,13 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 			nd i_next_city = min_circuit[i+1];
 			for(j=i+2; j<(cities-1-WSS); j+=WSS){
 				for(nd jj=0; jj<WSS; jj++){
-					avx_ed[jj] = euclidean_dist(G[i_city],G[min_circuit[j+jj]]) + euclidean_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
-				}
+                                        avx_ed[jj] = squared_dist(G[i_city],G[min_circuit[j+jj]]);
+                                        avx_pre[jj] = squared_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
+                                }
+                                vsqrt(avx_ed,avx_ed,&wss);
+                                vsqrt(avx_pre,avx_pre,&wss);
+                                for(nd jj=0;jj<WSS;jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
+				
 				for(nd jj=0;jj<WSS;jj++){
 					avx_pre[jj] = precal_distance[i] + precal_distance[j+jj];
 				}
