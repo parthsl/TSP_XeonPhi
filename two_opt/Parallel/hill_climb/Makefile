@@ -5,6 +5,10 @@ CFLAGS = -lm -fopenmp
 OPT = -O3
 objects := 2opt
 DEP = src/two_opt.c src/vnn.c src/util.c
+ifeq ($(CC),xlc)
+	OPT+=-lmassvp8 -lmass_simdp8 -qarch=pwr8
+endif
+
 
 all: 2opt
 

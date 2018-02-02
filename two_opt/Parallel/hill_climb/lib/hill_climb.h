@@ -1,5 +1,4 @@
 #include<stdio.h>
-#include<massv.h>
 #include<stdlib.h>
 #include<math.h>
 #include<limits.h>
@@ -8,6 +7,11 @@
 #include<errno.h>
 #include<float.h>
 #include<omp.h>
+
+#ifdef __ibmxl__
+#include<massv.h>
+#include<mass_simd.h>
+#endif
 
 /*
  * @Author : Parth Shah<parths1229@gmail.com>A
