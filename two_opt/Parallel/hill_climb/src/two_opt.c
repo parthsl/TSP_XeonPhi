@@ -126,7 +126,7 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 	#pragma omp parallel
 	{
 		nd id = omp_get_thread_num();
-		nd ic_local, jc_local;
+		nd ic_local=0, jc_local=0;
 		nd total_threads;
 		static bool loop= true;
 		nd block_size;
@@ -238,24 +238,24 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 	nd ic = 0,jc = 0;
 	const long long int VS = 64;//Vector Size: Length of vectorised operation queue.
 	int VVS = (int)cities;//Variable Vector Size: Length of vectorising operation queue varies with each iteration.
-		double avx_ed[VS];
+	double avx_ed[VS];
 	double avx_pre[VS];
 #ifdef __ibmxl__
 	vector double x,y;
-	#endif
+#endif
 
 	double precal_distance[cities];
 
-	#ifdef __ibmxl__
+#ifdef __ibmxl__
 	for(nd i=0; i<cities-1; i++) {
 		precal_distance[i] = squared_dist(G[min_circuit[i]],G[min_circuit[i+1]]);
 	}
 	vsqrt(precal_distance, precal_distance, &VVS);
-	#else
+#else
 	for(nd i=0; i<cities-1; i++) {
 		precal_distance[i] = euclidean_dist(G[min_circuit[i]],G[min_circuit[i+1]]);
 	}
-	#endif
+#endif
 
 	while(loop) {
 
@@ -275,7 +275,7 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 			for(VVS=VS; VVS>=2; VVS/=2) {
 
 				for(; j<(cities-1-VVS); j+=VVS) {
-					#ifdef __ibmxl__
+#ifdef __ibmxl__
 					for(nd jj=0; jj<VVS; jj++) {
 						avx_ed[jj] = squared_dist(G[i_city],G[min_circuit[j+jj]]);
 						avx_pre[jj] = squared_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
@@ -283,11 +283,11 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 					vsqrt(avx_ed,avx_ed,&VVS);
 					vsqrt(avx_pre,avx_pre,&VVS);
 					for(nd jj=0; jj<VVS; jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
-					#else
-					for(nd jj=0;jj<VVS; jj++){
-						avx_ed[jj] = euclidean_dist(G[i_city],G[min_circuit[j+jj]]);
+#else
+					for(nd jj=0; jj<VVS; jj++) {
+						avx_ed[jj] = euclidean_dist(G[i_city],G[min_circuit[j+jj]]) + euclidean_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
 					}
-					#endif
+#endif
 
 					for(nd jj=0; jj<VVS; jj++) {
 						avx_pre[jj] = precal_distance[i] + precal_distance[j+jj];
@@ -309,9 +309,13 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 			for(; j<cities-1; j++) {
 				nd j_city = min_circuit[j];
 				nd j_next_city = min_circuit[j+1];
+#ifdef __ibmxl__
 				x = (vector double)(squared_dist(G[i_city],G[j_city]), squared_dist(G[i_next_city],G[j_next_city]) );
 				y = sqrtd2(x);
 				double s_dist = y[0] + y[1];
+#else
+				double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
+#endif
 				double f_dist = precal_distance[i]+precal_distance[j];//euclidean_dist(G[i_city],G[i_next_city]) + euclidean_dist(G[j_city],G[j_next_city]);
 				if(f_dist>s_dist) {
 					if(f_dist-s_dist > max_change) {
@@ -337,10 +341,15 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 				precal_distance[ic+i] = precal_distance[jc-i];
 				precal_distance[jc-i] = temp;
 			}
+#ifdef __ibmxl__
 			x = (vector double)(squared_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]), squared_dist(G[min_circuit[jc]], G[min_circuit[jc+1]]) );
 			y = sqrtd2(x);
 			precal_distance[ic] = y[0];
 			precal_distance[jc] = y[1];
+#else
+			precal_distance[ic] = euclidean_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
+			precal_distance[jc] = euclidean_dist(G[min_circuit[jc]],G[min_circuit[jc+1]]);
+#endif
 		}
 		else loop=false;
 

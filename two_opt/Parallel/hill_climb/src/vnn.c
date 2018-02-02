@@ -63,7 +63,7 @@ nd* VNN(struct coords* G, nd cities, nd start) {
 	min_circuit[top++] = start;
 	for(int i=0; i<cities-1; i++) {
 		double min_dist = DBL_MAX;
-		int min_dist_node;
+		int min_dist_node = 0;
 		for(int j=0; j<cities; j++) {
 			if(visited[j])continue;
 			if(euclidean_dist(G[start],G[j])<min_dist) {
