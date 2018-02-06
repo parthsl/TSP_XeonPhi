@@ -8,6 +8,11 @@
 #include<float.h>
 #include<omp.h>
 
+#ifdef __ibmxl__
+#include<massv.h>
+#include<mass_simd.h>
+#endif
+
 /*
  * @Author : Parth Shah<parths1229@gmail.com>A
  *
@@ -49,3 +54,5 @@ void print_tour(struct coords* G, nd* min_circuit, nd total_cities);
 nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities);
 
 nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities);
+
+nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities);

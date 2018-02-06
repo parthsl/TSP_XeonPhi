@@ -19,33 +19,23 @@ int main(int argc, char** argv) // argv1 = filename argv2 = threads
 	{
 		total_threads_available = omp_get_num_threads();
 	}
-	
+	printf("Thread spawned: %ld\n",total_threads_available);
+  
 	double tour_length;
+
 	omp_set_num_threads(8);
-	min_circuit = VNN(G,total_cities,0);
+	min_circuit = VNNp(G,total_cities,0);
 	omp_set_num_threads(total_threads_available);
+
 	printf("Tour length after VNN : %lf\n",find_tour_length(G,min_circuit,total_cities));
 	
 //---------------------------------------------------------------------------------------------------//
 
-	double last_tour_length = DBL_MAX;
-	
-	printf("total threads spawned:%ld\n",total_threads_available);
 	nd counter = 0;
+	
+	counter += two_opt_max_swap(G, min_circuit,total_cities);
+	tour_length = find_tour_length(G,min_circuit,total_cities);
 
-	while(total_threads_available>=1) {
-		while(1) {
-			counter += two_opt_max_swap(G, min_circuit,total_cities);
-			tour_length = find_tour_length(G,min_circuit,total_cities);
-			if(last_tour_length<=tour_length)break;
-			last_tour_length = tour_length;
-			break;
-		}
-		break;
-		printf("Distance optimized to = %lf\n",tour_length);
-		total_threads_available/=2;
-		omp_set_num_threads(total_threads_available);
-	}
 
 	printf("Hills climbed = %ld\n",counter);
 	printf("Min distance = %lf\n",tour_length);
