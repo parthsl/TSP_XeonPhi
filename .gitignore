@@ -5,3 +5,6 @@
 *.cubin
 *.fatbin
 *.out
+*.swp
+2opt*
+*.dat
