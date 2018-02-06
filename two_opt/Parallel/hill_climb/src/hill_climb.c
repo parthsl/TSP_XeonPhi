@@ -22,7 +22,7 @@ int main(int argc, char** argv) // argv1 = filename argv2 = threads
 
 	nd counter = 0;
 	
-	counter += two_opt_max_swap_single(G, min_circuit,total_cities);
+	counter += two_opt_max_swap(G, min_circuit,total_cities);
 	tour_length = find_tour_length(G,min_circuit,total_cities);
 
 	printf("Hills climbed = %ld\n",counter);

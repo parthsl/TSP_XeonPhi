@@ -123,28 +123,17 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 	double max_change = 0;
 	nd ic,jc;
 	nd counter = 0;
+	bool loop= true;
+	
 	#pragma omp parallel
 	{
 		nd id = omp_get_thread_num();
 		nd ic_local=0, jc_local=0;
 		nd total_threads;
-		static bool loop= true;
-		nd block_size;
+		nd i,iend;
+		nd alpha;
 
 		total_threads = omp_get_num_threads();
-		if(total_threads==0)
-			block_size = 1;
-		else block_size = cities/total_threads;
-
-		nd iend;
-		if(id==total_threads-1)
-			iend = cities;
-		else iend = block_size*(id+1);
-
-		nd alpha = (1-(float)id/total_threads)*(cities-2)*(cities-3);
-		nd i = cities - ceil(( sqrt((alpha-6)*4 + 25)+5 )/2);
-		if(id==0)i = 0;
-
 		alpha =(1- (float)(id+1)/total_threads)*(cities-2)*(cities-3);
 		iend = cities - ceil(( sqrt((alpha-6)*4 + 25) +5) /2);
 		if(id+1 == total_threads)iend=cities-1;
@@ -152,9 +141,10 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 		//To enter in while loop simultaniously
 		#pragma omp barrier
 
+		alpha = (1-(float)id/total_threads)*(cities-2)*(cities-3);
+		alpha = cities - ceil(( sqrt((alpha-6)*4 + 25)+5 )/2);
 		while(loop) {
-			alpha = (1-(float)id/total_threads)*(cities-2)*(cities-3);
-			i = cities - ceil(( sqrt((alpha-6)*4 + 25)+5 )/2);
+			i = alpha;
 			if(id==0)i = 0;
 
 			double max_change_local = 0;
@@ -175,20 +165,16 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 					}
 				}
 			}
+			static nd j;
 			#pragma omp critical
 			{
 				if(max_change_local > max_change) {
 					max_change = max_change_local;
 					ic = ic_local;
 					jc = jc_local;
+					j = (jc-ic-1)/2;
 				}
 			}
-
-			#pragma omp barrier
-
-			static nd j;
-			#pragma omp single
-			j = (jc-ic-1)/2;
 
 			#pragma omp barrier
 			if(max_change>0) {
