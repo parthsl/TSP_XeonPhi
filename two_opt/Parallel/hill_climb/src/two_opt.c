@@ -119,12 +119,12 @@ nd two_opt_inline_swap(struct coords* G, nd* min_circuit, nd cities) {
 }
 
 
-nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
+nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 	double max_change = 0;
 	nd ic,jc;
 	nd counter = 0;
 	bool loop= true;
-	
+	double precal_distance[cities];
 	#pragma omp parallel
 	{
 		nd id = omp_get_thread_num();
@@ -137,6 +137,9 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 		alpha =(1- (float)(id+1)/total_threads)*(cities-2)*(cities-3);
 		iend = cities - ceil(( sqrt((alpha-6)*4 + 25) +5) /2);
 		if(id+1 == total_threads)iend=cities-1;
+
+		#pragma omp for
+		for(i=0; i<cities; i++) precal_distance[i] = euclidean_dist(G[min_circuit[i]],G[min_circuit[i+1]]);
 
 		//To enter in while loop simultaniously
 		#pragma omp barrier
@@ -155,7 +158,7 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 					nd j_next_city = min_circuit[j+1];
 					nd i_next_city = min_circuit[i+1];
 					double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
-					double f_dist = euclidean_dist(G[i_city],G[i_next_city]) + euclidean_dist(G[j_city],G[j_next_city]);
+					double f_dist = precal_distance[i] + precal_distance[j];
 					if(f_dist>s_dist) {
 						if(f_dist-s_dist > max_change_local) {
 							max_change_local = f_dist-s_dist;
@@ -184,6 +187,14 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, nd cities) {
 					min_circuit[ic+1+i] = min_circuit[jc-i];
 					min_circuit[jc-i] = temp;
 				}
+				#pragma omp for
+				for(i=0; i<=j; i++) {
+					nd temp = precal_distance[ic+i];
+					precal_distance[ic+i] = precal_distance[jc-i];
+					precal_distance[jc-i] = temp;
+				}
+				precal_distance[ic] = euclidean_dist(G[min_circuit[ic]], G[min_circuit[ic+1]]);
+				precal_distance[jc] = euclidean_dist(G[min_circuit[jc]], G[min_circuit[jc+1]]);
 			}
 			else loop=false;
 
@@ -226,13 +237,13 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 	int VVS = (int)cities;//Variable Vector Size: Length of vectorising operation queue varies with each iteration.
 	double avx_ed[VS];
 	double avx_pre[VS];
-#ifdef __ibmxl__
+#if defined(__ibmxl__) || defined(__powerpc__)
 	vector double x,y;
 #endif
 
 	double precal_distance[cities];
 
-#ifdef __ibmxl__
+#if defined(__ibmxl__) || defined(__powerpc__)
 	for(nd i=0; i<cities-1; i++) {
 		precal_distance[i] = squared_dist(G[min_circuit[i]],G[min_circuit[i+1]]);
 	}
@@ -261,7 +272,7 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 			for(VVS=VS; VVS>=2; VVS/=2) {
 
 				for(; j<(cities-1-VVS); j+=VVS) {
-#ifdef __ibmxl__
+#if defined(__ibmxl__) || defined(__powerpc__)
 					for(nd jj=0; jj<VVS; jj++) {
 						avx_ed[jj] = squared_dist(G[i_city],G[min_circuit[j+jj]]);
 						avx_pre[jj] = squared_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
@@ -295,8 +306,9 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 			for(; j<cities-1; j++) {
 				nd j_city = min_circuit[j];
 				nd j_next_city = min_circuit[j+1];
-#ifdef __ibmxl__
-				x = (vector double)(squared_dist(G[i_city],G[j_city]), squared_dist(G[i_next_city],G[j_next_city]) );
+#if defined(__ibmxl__) || defined(__powerpc__)
+				x[0] = squared_dist(G[i_city],G[j_city]);
+				x[1] = squared_dist(G[i_next_city],G[j_next_city]);
 				y = sqrtd2(x);
 				double s_dist = y[0] + y[1];
 #else
@@ -327,8 +339,10 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 				precal_distance[ic+i] = precal_distance[jc-i];
 				precal_distance[jc-i] = temp;
 			}
-#ifdef __ibmxl__
-			x = (vector double)(squared_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]), squared_dist(G[min_circuit[jc]], G[min_circuit[jc+1]]) );
+
+#if defined(__ibmxl__) || defined(__powerpc__)
+			x[0] = squared_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
+			x[1] =  squared_dist(G[min_circuit[jc]], G[min_circuit[jc+1]]);
 			y = sqrtd2(x);
 			precal_distance[ic] = y[0];
 			precal_distance[jc] = y[1];

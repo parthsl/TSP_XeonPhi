@@ -15,16 +15,12 @@ int main(int argc, char** argv) // argv1 = filename argv2 = threads
 
 	nd* min_circuit;
 	nd total_threads_available=1;
-	#pragma omp parallel 
-	{
-		total_threads_available = omp_get_num_threads();
-	}
 	printf("Thread spawned: %ld\n",total_threads_available);
   
 	double tour_length;
 
 	omp_set_num_threads(8);
-	min_circuit = VNNp(G,total_cities,0);
+	min_circuit = VNN(G,total_cities,0);
 	omp_set_num_threads(total_threads_available);
 
 	printf("Tour length after VNN : %lf\n",find_tour_length(G,min_circuit,total_cities));
@@ -33,7 +29,7 @@ int main(int argc, char** argv) // argv1 = filename argv2 = threads
 
 	nd counter = 0;
 	
-	counter += two_opt_max_swap(G, min_circuit,total_cities);
+	counter += two_opt_max_swap_single(G, min_circuit,total_cities);
 	tour_length = find_tour_length(G,min_circuit,total_cities);
 
 

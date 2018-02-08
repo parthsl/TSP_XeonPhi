@@ -8,7 +8,7 @@
 #include<float.h>
 #include<omp.h>
 
-#ifdef __ibmxl__
+#if defined(__ibmxl__) || defined(__powerpc__)
 #include<massv.h>
 #include<mass_simd.h>
 #endif
@@ -33,7 +33,7 @@ typedef long int nd;
 typedef volatile nd noopt;
 
 #define squared_dist(i, j) \
-	sqrt( (i.x-j.x)*(i.x-j.x) + (i.y-j.y)*(i.y-j.y))
+	( (i.x-j.x)*(i.x-j.x) + (i.y-j.y)*(i.y-j.y))
 #define euclidean_dist(i, j) \
         sqrt( (i.x-j.x)*(i.x-j.x) + (i.y-j.y)*(i.y-j.y))
 
