@@ -125,6 +125,7 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 	nd counter = 0;
 	bool loop= true;
 	double precal_distance[cities];
+
 	#pragma omp parallel
 	{
 		nd id = omp_get_thread_num();
@@ -132,6 +133,13 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 		nd total_threads;
 		nd i,iend;
 		nd alpha;
+		const long long int VS = 64;
+		int VVS = VS;
+		double avx_ed[VS];
+		double avx_pre[VS];
+#if defined(__ibmxl__) || defined(__powerpc__)
+		vector double x,y;
+#endif
 
 		total_threads = omp_get_num_threads();
 		alpha =(1- (float)(id+1)/total_threads)*(cities-2)*(cities-3);
@@ -146,28 +154,69 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 
 		alpha = (1-(float)id/total_threads)*(cities-2)*(cities-3);
 		alpha = cities - ceil(( sqrt((alpha-6)*4 + 25)+5 )/2);
+		if(id==0)alpha=0;
 		while(loop) {
 			i = alpha;
-			if(id==0)i = 0;
-
 			double max_change_local = 0;
+
 			for(; i<iend; i++) {
 				nd i_city = min_circuit[i];
-				for(nd j=i+2; j<cities-1; j++) {
+				nd i_next_city = min_circuit[i+1];
+				nd j = i+2;
+
+				for(; j<(cities-1-VVS); j+=VVS) {
+#if defined(__ibmxl__) || defined(__powerpc__)
+					for(nd jj=0; jj<VVS; jj++) {
+						avx_ed[jj] = squared_dist(G[i_city],G[min_circuit[j+jj]]);
+						avx_pre[jj] = squared_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
+					}
+					vsqrt(avx_ed,avx_ed,&VVS);
+					vsqrt(avx_pre,avx_pre,&VVS);
+					for(nd jj=0; jj<VVS; jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
+#else
+					for(nd jj=0; jj<VVS; jj++) {
+						avx_ed[jj] = euclidean_dist(G[i_city],G[min_circuit[j+jj]]) + euclidean_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
+					}
+#endif
+
+					for(nd jj=0; jj<VVS; jj++) {
+						avx_pre[jj] = precal_distance[i] + precal_distance[j+jj];
+					}
+					for(nd jj=0; jj<VVS; jj++) {
+						avx_pre[jj] = avx_pre[jj] - avx_ed[jj];
+					}
+					for(nd jj=0; jj<VVS; jj++) {
+						if(avx_pre[jj] > max_change_local) {
+							max_change_local = avx_pre[jj];
+							ic_local = i;
+							jc_local = j+jj;
+						}
+					}
+				}
+
+				//Peeled loop.
+				for(; j<cities-1; j++) {
 					nd j_city = min_circuit[j];
 					nd j_next_city = min_circuit[j+1];
-					nd i_next_city = min_circuit[i+1];
+#if defined(__ibmxl__) || defined(__powerpc__)
+					x[0] = squared_dist(G[i_city],G[j_city]);
+					x[1] = squared_dist(G[i_next_city],G[j_next_city]);
+					y = sqrtd2(x);
+					double s_dist = y[0] + y[1];
+#else
 					double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
-					double f_dist = precal_distance[i] + precal_distance[j];
+#endif
+					double f_dist = precal_distance[i]+precal_distance[j];//euclidean_dist(G[i_city],G[i_next_city]) + euclidean_dist(G[j_city],G[j_next_city]);
 					if(f_dist>s_dist) {
 						if(f_dist-s_dist > max_change_local) {
 							max_change_local = f_dist-s_dist;
 							ic_local = i;
-							jc_local=j;
+							jc_local = j;
 						}
 					}
 				}
 			}
+
 			static nd j;
 			#pragma omp critical
 			{
@@ -193,8 +242,16 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 					precal_distance[ic+i] = precal_distance[jc-i];
 					precal_distance[jc-i] = temp;
 				}
-				precal_distance[ic] = euclidean_dist(G[min_circuit[ic]], G[min_circuit[ic+1]]);
-				precal_distance[jc] = euclidean_dist(G[min_circuit[jc]], G[min_circuit[jc+1]]);
+#if defined(__ibmxl__) || defined(__powerpc__)
+				x[0] = squared_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
+				x[1] = squared_dist(G[min_circuit[jc]], G[min_circuit[jc+1]]);
+				y = sqrtd2(x);
+				precal_distance[ic] = y[0];
+				precal_distance[jc] = y[1];
+#else
+				precal_distance[ic] = euclidean_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
+				precal_distance[jc] = euclidean_dist(G[min_circuit[jc]],G[min_circuit[jc+1]]);
+#endif
 			}
 			else loop=false;
 
