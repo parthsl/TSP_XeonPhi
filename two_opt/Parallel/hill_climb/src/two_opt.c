@@ -164,32 +164,34 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 				nd i_next_city = min_circuit[i+1];
 				nd j = i+2;
 
-				for(; j<(cities-1-VVS); j+=VVS) {
+				for(VVS=VS; VVS>=2; VVS=VVS/2) {
+					for(; j<(cities-1-VVS); j+=VVS) {
 #if defined(__ibmxl__) || defined(__powerpc__)
-					for(nd jj=0; jj<VVS; jj++) {
-						avx_ed[jj] = squared_dist(G[i_city],G[min_circuit[j+jj]]);
-						avx_pre[jj] = squared_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
-					}
-					vsqrt(avx_ed,avx_ed,&VVS);
-					vsqrt(avx_pre,avx_pre,&VVS);
-					for(nd jj=0; jj<VVS; jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
+						for(nd jj=0; jj<VVS; jj++) {
+							avx_ed[jj] = squared_dist(G[i_city],G[min_circuit[j+jj]]);
+							avx_pre[jj] = squared_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
+						}
+						vsqrt(avx_ed,avx_ed,&VVS);
+						vsqrt(avx_pre,avx_pre,&VVS);
+						for(nd jj=0; jj<VVS; jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
 #else
-					for(nd jj=0; jj<VVS; jj++) {
-						avx_ed[jj] = euclidean_dist(G[i_city],G[min_circuit[j+jj]]) + euclidean_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
-					}
+						for(nd jj=0; jj<VVS; jj++) {
+							avx_ed[jj] = euclidean_dist(G[i_city],G[min_circuit[j+jj]]) + euclidean_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
+						}
 #endif
 
-					for(nd jj=0; jj<VVS; jj++) {
-						avx_pre[jj] = precal_distance[i] + precal_distance[j+jj];
-					}
-					for(nd jj=0; jj<VVS; jj++) {
-						avx_pre[jj] = avx_pre[jj] - avx_ed[jj];
-					}
-					for(nd jj=0; jj<VVS; jj++) {
-						if(avx_pre[jj] > max_change_local) {
-							max_change_local = avx_pre[jj];
-							ic_local = i;
-							jc_local = j+jj;
+						for(nd jj=0; jj<VVS; jj++) {
+							avx_pre[jj] = precal_distance[i] + precal_distance[j+jj];
+						}
+						for(nd jj=0; jj<VVS; jj++) {
+							avx_pre[jj] = avx_pre[jj] - avx_ed[jj];
+						}
+						for(nd jj=0; jj<VVS; jj++) {
+							if(avx_pre[jj] > max_change_local) {
+								max_change_local = avx_pre[jj];
+								ic_local = i;
+								jc_local = j+jj;
+							}
 						}
 					}
 				}

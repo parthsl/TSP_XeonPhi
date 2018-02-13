@@ -12,7 +12,7 @@ ifeq ($(CC),xlc)
 	FLAGS+=-lmassvp8 -lmass_simdp8 -qarch=pwr8
 else
 ifeq ($(shell uname -p),ppc64le)
-	FLAGS+=-L$(MASSLIB_PATH)/lib -I$(MASSLIB_PATH)/include -lmassvp8 -lmass_simdp8 -lmass -lm -fopenmp -g -I./lib/ -Wall -mcpu=power8 -funroll-loops -ffast-math -mrecip=all
+	FLAGS+=-L$(MASSLIB_PATH)/lib -I$(MASSLIB_PATH)/include -lmassvp8 -lmass_simdp8 -lmass -lm -fopenmp -g -I./lib/ -Wall -mcpu=power8 -funroll-loops -ffast-math -mrecip=all -mveclibabi=mass
 endif
 endif
 
