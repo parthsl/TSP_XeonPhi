@@ -138,7 +138,7 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 		double avx_ed[VS];
 		double avx_pre[VS];
 #if defined(__ibmxl__) || defined(__powerpc__)
-		vector double x,y;
+		vector double x = {0,0},y={0,0};
 #endif
 
 		total_threads = omp_get_num_threads();
@@ -297,7 +297,7 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 	double avx_ed[VS];
 	double avx_pre[VS];
 #if defined(__ibmxl__) || defined(__powerpc__)
-	vector double x,y;
+	vector double x={0,0},y={0,0};
 #endif
 
 	double precal_distance[cities];
