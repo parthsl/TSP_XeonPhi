@@ -9,7 +9,16 @@ Each folder contains makefile to compile and clean the codes.
 
 TSPLIB is used to verify algorithms in here. <a href="https://www.iwr.uni-heidelberg.de/groups/comopt/software/TSPLIB95/STSP.html">TSPLIB Optimal Values</a>
 
+# PIHC
+#### Parallel Iterative Hill Climibing Algorithm for TSP heuristics problem.
 
+#### Project Goal:
+Optimisation of PIHC algorithm on various system architectures mainly on IBM POWER, Intel Xeon Phi,NVIDIA GPUs and also on Heterogeneous HPC Cluster. PIHC algorithm should produce output in optimal time with highest accuracy and efficiently utilise HPC systems.
+
+#### Project Outline:
+This project is used to solve any Combinatorial Problem or any NP-Hard problem and focus here is made on to the Travelling Salesman Problem. Circuit Desiging, Air-crew scheduling, Vehicle Routing, 3D rendering, and all complex combinatorial task can be mapped to TSP problem. Hence this problem is solved in a novel approach of PIHC which gives better accuracy and time optimal results.
+
+#### TSP: 
 Given a set of cities and distance between them, aim is to travel all the given cities in minimal time exactly once and return back to the starting city. This problem is Graph Problem stated as
 
 > For given Graph G consisting of V vertices and E edges, the problem of finding closed path on the graph starting from a vertex and traveling through all the vertices exactly once and then returning back to the starting vertex is termed as Traveling Salesman Problem.
