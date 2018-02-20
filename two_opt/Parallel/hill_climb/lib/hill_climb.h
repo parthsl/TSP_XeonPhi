@@ -11,6 +11,8 @@
 #if defined(__ibmxl__) || defined(__powerpc__)
 #include<massv.h>
 #include<mass_simd.h>
+#elif defined(__INTEL_COMPILER)
+#include<mkl.h>
 #endif
 
 /*

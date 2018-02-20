@@ -10,10 +10,15 @@ MASSLIB_PATH=/opt/ibm/xlmass/8.1.6
 
 ifeq ($(CC),xlc)
 	FLAGS+=-lmassvp8 -lmass_simdp8 -qarch=pwr8
-else
-ifeq ($(shell uname -p),ppc64le)
-	FLAGS+=-L$(MASSLIB_PATH)/lib -I$(MASSLIB_PATH)/include -lmassvp8 -lmass_simdp8 -lmass -lm -fopenmp -g -I./lib/ -Wall -mcpu=power8 -funroll-loops -ffast-math -mrecip=all -mveclibabi=mass
+else 
+ifeq ($(CC),icc)
+	FLAGS+=-fvar-tracking -axMIC-AVX512 -mkl -fimf-precision=high -mtune=knl -xHost -qopt-prefetch=2
+	OPT=-Ofast
 endif
+endif
+
+ifeq ($(shell uname -p),ppc64le)
+	FLAGS+=-L$(MASSLIB_PATH)/lib -I$(MASSLIB_PATH)/include -lmassvp8 -lmass_simdp8 -lmass -mcpu=power8 -funroll-loops -ffast-math -mrecip=all -mveclibabi=mass
 endif
 
 all: 2opt

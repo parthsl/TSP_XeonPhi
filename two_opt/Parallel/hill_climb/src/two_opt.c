@@ -139,6 +139,8 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 		double avx_pre[VS];
 #if defined(__ibmxl__) || defined(__powerpc__)
 		vector double x = {0,0},y={0,0};
+#elif defined(__INTEL_COMPILER)
+		double x[2]={0,0}, y[2]={0,0};
 #endif
 
 		total_threads = omp_get_num_threads();
@@ -164,7 +166,7 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 				nd i_next_city = min_circuit[i+1];
 				nd j = i+2;
 
-				for(VVS=VS; VVS>=2; VVS=VVS/2) {
+				for(VVS=VS; VVS>=8; VVS=VVS/2) {
 					for(; j<(cities-1-VVS); j+=VVS) {
 #if defined(__ibmxl__) || defined(__powerpc__)
 						for(nd jj=0; jj<VVS; jj++) {
@@ -174,15 +176,27 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 						vsqrt(avx_ed,avx_ed,&VVS);
 						vsqrt(avx_pre,avx_pre,&VVS);
 						for(nd jj=0; jj<VVS; jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
+#elif defined(__INTEL_COMPILER)
+						#pragma omp simd
+						for(nd jj=0; jj<VVS; jj++) {
+							avx_ed[jj] = squared_dist(G[i_city],G[min_circuit[j+jj]]);
+							avx_pre[jj] = squared_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
+						}
+						vdSqrt(VVS,avx_ed,avx_ed);
+						vdSqrt(VVS,avx_pre,avx_pre);
+						#pragma omp simd
+						for(nd jj=0; jj<VVS; jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
 #else
 						for(nd jj=0; jj<VVS; jj++) {
 							avx_ed[jj] = euclidean_dist(G[i_city],G[min_circuit[j+jj]]) + euclidean_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
 						}
 #endif
 
+						#pragma omp simd
 						for(nd jj=0; jj<VVS; jj++) {
 							avx_pre[jj] = precal_distance[i] + precal_distance[j+jj];
 						}
+						#pragma omp simd
 						for(nd jj=0; jj<VVS; jj++) {
 							avx_pre[jj] = avx_pre[jj] - avx_ed[jj];
 						}
@@ -204,6 +218,11 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 					x[0] = squared_dist(G[i_city],G[j_city]);
 					x[1] = squared_dist(G[i_next_city],G[j_next_city]);
 					y = sqrtd2(x);
+					double s_dist = y[0] + y[1];
+#elif defined(__INTEL_COMPILER)
+					x[0] = squared_dist(G[i_city],G[j_city]);
+					x[1] = squared_dist(G[i_next_city],G[j_next_city]);
+					vdSqrt(2,x,y);
 					double s_dist = y[0] + y[1];
 #else
 					double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
@@ -250,6 +269,13 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 				y = sqrtd2(x);
 				precal_distance[ic] = y[0];
 				precal_distance[jc] = y[1];
+#elif defined(__INTEL_COMPILER)
+				x[0] = squared_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
+				x[1] = squared_dist(G[min_circuit[jc]], G[min_circuit[jc+1]]);
+				vdSqrt(2,x,y);
+				precal_distance[ic] = y[0];
+				precal_distance[jc] = y[1];
+
 #else
 				precal_distance[ic] = euclidean_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
 				precal_distance[jc] = euclidean_dist(G[min_circuit[jc]],G[min_circuit[jc+1]]);
@@ -298,6 +324,9 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 	double avx_pre[VS];
 #if defined(__ibmxl__) || defined(__powerpc__)
 	vector double x={0,0},y={0,0};
+#elif defined(__INTEL_COMPILER)
+	double x[2]={0,0}, y[2]={0,0};
+	printf("Detected ICC compiled binary\n");
 #endif
 
 	double precal_distance[cities];
@@ -339,6 +368,14 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 					vsqrt(avx_ed,avx_ed,&VVS);
 					vsqrt(avx_pre,avx_pre,&VVS);
 					for(nd jj=0; jj<VVS; jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
+#elif defined(__INTEL_COMPILER)
+					for(nd jj=0; jj<VVS; jj++) {
+						avx_ed[jj] = squared_dist(G[i_city],G[min_circuit[j+jj]]);
+						avx_pre[jj] = squared_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
+					}
+					vdSqrt(VVS,avx_ed,avx_ed);
+					vdSqrt(VVS,avx_pre,avx_pre);
+					for(nd jj=0; jj<VVS; jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
 #else
 					for(nd jj=0; jj<VVS; jj++) {
 						avx_ed[jj] = euclidean_dist(G[i_city],G[min_circuit[j+jj]]) + euclidean_dist(G[i_next_city],G[min_circuit[j+jj+1]]);
@@ -369,6 +406,11 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 				x[0] = squared_dist(G[i_city],G[j_city]);
 				x[1] = squared_dist(G[i_next_city],G[j_next_city]);
 				y = sqrtd2(x);
+				double s_dist = y[0] + y[1];
+#elif defined(__INTEL_COMPILER)
+				x[0] = squared_dist(G[i_city],G[j_city]);
+				x[1] = squared_dist(G[i_next_city],G[j_next_city]);
+				vdSqrt(2,x,y);
 				double s_dist = y[0] + y[1];
 #else
 				double s_dist = euclidean_dist(G[i_city],G[j_city]) + euclidean_dist(G[i_next_city],G[j_next_city]);
@@ -403,6 +445,12 @@ nd two_opt_max_swap_single(struct coords* G, nd* min_circuit, nd cities) {
 			x[0] = squared_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
 			x[1] =  squared_dist(G[min_circuit[jc]], G[min_circuit[jc+1]]);
 			y = sqrtd2(x);
+			precal_distance[ic] = y[0];
+			precal_distance[jc] = y[1];
+#elif defined(__INTEL_COMPILER)
+			x[0] = squared_dist(G[min_circuit[ic]],G[min_circuit[ic+1]]);
+			x[1] = squared_dist(G[min_circuit[jc]], G[min_circuit[jc+1]]);
+			vdSqrt(2,x,y);
 			precal_distance[ic] = y[0];
 			precal_distance[jc] = y[1];
 #else
