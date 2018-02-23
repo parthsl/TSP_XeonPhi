@@ -67,7 +67,7 @@ int main(int argc, char** argv) // argv1 = filename argv2 = threads
 	MPI_Get_processor_name(mach_name,&mach_len);
 	printf("%d:%s\n",num_local, mach_name);
 	/*------------------------- Send min_circuit to everyone after VNN ---------------------------------*/
-	MPI_Bcast(min_circuit,total_cities, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(min_circuit,total_cities+1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
 
 #ifdef DEBUG
 	if(num_local==master)
