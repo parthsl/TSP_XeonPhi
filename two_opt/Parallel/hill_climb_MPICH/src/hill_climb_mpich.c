@@ -59,7 +59,7 @@ int main(int argc, char** argv) // argv1 = filename argv2 = threads
 		omp_set_num_threads(total_threads_available);
 	}
 	else {
-		min_circuit = (nd*)malloc(sizeof(nd)*total_cities);
+		min_circuit = (nd*)malloc(sizeof(nd)*(total_cities+1));
 	}
 
 	char mach_name[100];
