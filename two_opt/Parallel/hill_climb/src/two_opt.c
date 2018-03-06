@@ -148,7 +148,7 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 		iend = cities - ceil(( sqrt((alpha-6)*4 + 25) +5) /2);
 		if(id+1 == total_threads)iend=cities-1;
 
-		#pragma omp for
+		#pragma omp for schedule(static)
 		for(i=0; i<cities; i++) precal_distance[i] = euclidean_dist(G[min_circuit[i]],G[min_circuit[i+1]]);
 
 		//To enter in while loop simultaniously
@@ -251,13 +251,13 @@ nd two_opt_max_swap(struct coords* G, nd* min_circuit, const nd cities) {
 
 			#pragma omp barrier
 			if(max_change>0) {
-				#pragma omp for
+				#pragma omp for schedule(static)
 				for(i=0; i<=j; i++) {
 					nd temp = min_circuit[ic+1+i];
 					min_circuit[ic+1+i] = min_circuit[jc-i];
 					min_circuit[jc-i] = temp;
 				}
-				#pragma omp for
+				#pragma omp for schedule(static)
 				for(i=0; i<=j; i++) {
 					nd temp = precal_distance[ic+i];
 					precal_distance[ic+i] = precal_distance[jc-i];

@@ -12,7 +12,7 @@ ifeq ($(CC),xlc)
 	FLAGS+=-lmassvp8 -lmass_simdp8 -qarch=pwr8
 else 
 ifeq ($(CC),icc)
-	FLAGS+=-fvar-tracking -axMIC-AVX512 -mkl -fimf-precision=high -mtune=knl -xHost -qopt-prefetch=2
+	FLAGS+=-fvar-tracking -axMIC-AVX512 -mkl -fimf-precision=high -mtune=knl -xHost -qopt-prefetch=2 -funroll-loops -ffast-math 
 	OPT=-Ofast
 endif
 endif
