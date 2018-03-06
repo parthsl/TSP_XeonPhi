@@ -10,6 +10,11 @@
 #include<mpi.h>
 #include<unistd.h>
 
+#if defined(__ibmxl__) || defined(__powerpc__)
+#include<massv.h>
+#include<mass_simd.h>
+#endif
+
 #define master 0
 
 /*
@@ -27,6 +32,8 @@ typedef long int nd;
 
 typedef volatile nd noopt;
 
+#define squared_dist(G, i, j) \
+        ( (G[0][i]-G[0][j])*(G[0][i]-G[0][j]) + (G[1][i]-G[1][j])*(G[1][i]-G[1][j]) )
 #define euclidean_dist(G, i, j) \
         sqrt( (G[0][i]-G[0][j])*(G[0][i]-G[0][j]) + (G[1][i]-G[1][j])*(G[1][i]-G[1][j]) )
 
@@ -47,10 +54,3 @@ void print_tour(double** G, nd* min_circuit, nd total_cities);
 nd two_opt_inline_swap(double** G, nd* min_circuit, nd cities);
 
 nd two_opt_max_swap(double** G, nd* min_circuit, nd cities, int num_procs, int num_local);
-nd two_opt_tiled_max_swap(double** G, nd* min_circuit, nd cities, int num_procs, int num_local);
-
-void two_opt_random_swap(nd* min_circuit, nd cities, nd k);
-
-void bruteforce(double** G, nd* min_circuit, nd cities);
-
-void chunk_bruteforce(double** G, nd* min_circuit, nd cities, nd chunk_size);

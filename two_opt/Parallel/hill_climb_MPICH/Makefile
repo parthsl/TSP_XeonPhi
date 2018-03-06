@@ -1,18 +1,34 @@
 CC = gcc
 LIBDIR = lib
 SRCDIR = src
-CFLAGS = -lm -fopenmp -g
-WALL = -WALL
-objects := 2opt 2opt_Pr 2opt_mpich
+CFLAGS = -lm -fopenmp
+OPT = -O3
+objects := 2opt
 DEP = src/two_opt.c src/vnn.c src/util.c
+FLAGS=
+MASSLIB_PATH=/root/Parth/docker/mass
+OpenMPI_PATH=/root/Parth/openmpi-3.0.0/build/
+CUSTOM_OpenMPI_PATH?=no
 
-all: 2opt_mpich
+ifeq ($(CC),mpicc)
+ifeq ($(CUSTOM_OpenMPI_PATH),yes)
+	FLAGS+=-I$(OpenMPI_PATH)/include -L$(OpenMPI_PATH)/lib
+endif
+endif
+ifeq ($(CC),xlc)
+	FLAGS+=-qarch=pwr8
+endif
+ifeq ($(shell uname -p),ppc64le)
+	FLAGS+=-L$(MASSLIB_PATH)/lib -I$(MASSLIB_PATH)/include -lmassvp8 -lmass_simdp8 -lmass -lm -fopenmp -g -I./lib/ -Wall -mcpu=power8 -funroll-loops -ffast-math -mrecip=all -mveclibabi=mass
+endif
 
-debug: CFLAGS += -D DEBUG
+all: 2opt
+
+debug: CFLAGS += -g -D DEBUG
 debug: 2opt
 
-2opt_mpich: lib/hill_climb.h $(DEP) src/hill_climb_mpich.c
-	$(CC) -o $@ $? $(CFLAGS) -I./lib/ -Wall
+2opt: $(DEP) src/hill_climb_mpich.c
+	$(CC) -o $@ $? $(FLAGS) -g -I./lib/ -Wall -Wextra $(OPT) $(CFLAGS)
 
 clean:
 	rm -f $(objects)
