@@ -58,7 +58,7 @@ nd* VNN(struct coords* G, nd cities, nd start) {
 	memset(visited, 0, sizeof(bool)*cities);
 	nd * min_circuit = (nd*) malloc(sizeof(nd)*(cities+1));
 	nd top = 0;
-#if defined(__ibmxl__) || defined(__powerpc__)  
+#if defined(__ibmxl__) || defined(__powerpc__) || defined(__INTEL_COMPILER)
 	int total_cities = (int)cities;
 	double avx_ed[cities];
 #endif
@@ -69,6 +69,7 @@ nd* VNN(struct coords* G, nd cities, nd start) {
 		double min_dist = DBL_MAX;
 		int min_dist_node = 0;
 #if defined(__ibmxl__) || defined(__powerpc__)
+		#pragma omp simd
 		for(int j=0; j<cities; j++) {
 			avx_ed[j] = squared_dist(G[start],G[j]);
 		}
@@ -80,6 +81,20 @@ nd* VNN(struct coords* G, nd cities, nd start) {
 				min_dist_node = j;
 			}
 		}
+#elif defined (__INTEL_COMPILER)
+		#pragma omp simd
+		for(int j=0; j<cities; j++) {
+                        avx_ed[j] = squared_dist(G[start],G[j]);
+                }
+		vdSqrt(total_cities,avx_ed,avx_ed);
+                for(int j=0;j<cities;j++) {
+                        if(visited[j])continue;
+                        if(avx_ed[j]<min_dist) {
+                                min_dist = avx_ed[j];
+                                min_dist_node = j;
+                        }
+                }
+
 #else
 		for(int j=0;j<cities;j++) {
                         if(visited[j])continue;
