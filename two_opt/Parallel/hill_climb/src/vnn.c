@@ -58,19 +58,37 @@ nd* VNN(struct coords* G, nd cities, nd start) {
 	memset(visited, 0, sizeof(bool)*cities);
 	nd * min_circuit = (nd*) malloc(sizeof(nd)*(cities+1));
 	nd top = 0;
+#if defined(__ibmxl__) || defined(__powerpc__)  
+	int total_cities = (int)cities;
+	double avx_ed[cities];
+#endif
 
 	visited[start] = true;
 	min_circuit[top++] = start;
 	for(int i=0; i<cities-1; i++) {
 		double min_dist = DBL_MAX;
 		int min_dist_node = 0;
+#if defined(__ibmxl__) || defined(__powerpc__)
 		for(int j=0; j<cities; j++) {
+			avx_ed[j] = squared_dist(G[start],G[j]);
+		}
+		vsqrt(avx_ed,avx_ed,&total_cities);
+		for(int j=0;j<cities;j++) {
 			if(visited[j])continue;
-			if(euclidean_dist(G[start],G[j])<min_dist) {
-				min_dist = euclidean_dist(G[start],G[j]);
+			if(avx_ed[j]<min_dist) {
+				min_dist = avx_ed[j];
 				min_dist_node = j;
 			}
 		}
+#else
+		for(int j=0;j<cities;j++) {
+                        if(visited[j])continue;
+                        if(euclidean_dist(G[start],G[j])<min_dist) {
+                                min_dist = euclidean_dist(G[start],G[j]);
+                                min_dist_node = j;
+                        }
+                }
+#endif
 		start = min_dist_node;
 		visited[start] = true;
 		min_circuit[top++] = start;
