@@ -20,6 +20,10 @@ ifeq ($(CC),xlc)
 endif
 ifeq ($(shell uname -p),ppc64le)
 	FLAGS+=-L$(MASSLIB_PATH)/lib -I$(MASSLIB_PATH)/include -lmassvp8 -lmass_simdp8 -lmass -lm -fopenmp -g -I./lib/ -Wall -mcpu=power8 -funroll-loops -ffast-math -mrecip=all -mveclibabi=mass
+else
+ifeq ($(shell uname -p),x86_64)
+	FLAGS+=-mkl -axMIC-AVX512
+endif
 endif
 
 all: 2opt

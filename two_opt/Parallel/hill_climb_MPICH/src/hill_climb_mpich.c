@@ -48,8 +48,9 @@ int main(int argc, char** argv) // argv1 = filename argv2 = threads
 	{
 		total_threads_available = omp_get_num_threads();
 	}
-
+#ifdef DEBUG
 	printf("%d: Threads spawn: %ld\n",num_local, total_threads_available);
+#endif
 
 	//---------------------------VNN---------------------------------------------------------------------//
 	if(num_local==master) {
@@ -65,7 +66,9 @@ int main(int argc, char** argv) // argv1 = filename argv2 = threads
 	char mach_name[100];
 	int mach_len;
 	MPI_Get_processor_name(mach_name,&mach_len);
+#ifdef DEBUG
 	printf("%d:%s\n",num_local, mach_name);
+#endif
 	/*------------------------- Send min_circuit to everyone after VNN ---------------------------------*/
 	MPI_Bcast(min_circuit,total_cities+1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
 

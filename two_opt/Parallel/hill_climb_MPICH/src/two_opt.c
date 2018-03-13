@@ -161,10 +161,12 @@ nd two_opt_max_swap(double** G, nd* min_circuit, nd cities, int num_procs, int n
 
 #if defined(__ibmxl__) || defined(__powerpc__)
                 vector double x = {0,0},y={0,0};
+#elif defined(__INTEL_COMPILER)
+		double x[2]={0,0}, y[2]={0,0};
 #endif
 
 		//build precalculated euclidean distance to neighbours
-		#pragma omp for
+		#pragma omp for schedule(static)
                 for(nd i=0; i<cities; i++) precal_distance[i] = euclidean_dist(G, min_circuit[i],min_circuit[i+1]);
 #pragma omp barrier
 		//Find istart
@@ -197,6 +199,16 @@ nd two_opt_max_swap(double** G, nd* min_circuit, nd cities, int num_procs, int n
                                                 vsqrt(avx_ed,avx_ed,&VVS);
                                                 vsqrt(avx_pre,avx_pre,&VVS);
                                                 for(nd jj=0; jj<VVS; jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
+#elif defined(__INTEL_COMPILER)
+						#pragma omp simd
+						for(nd jj=0; jj<VVS; jj++) {
+							avx_ed[jj] = squared_dist(G, i_city, min_circuit[j+jj]);
+							avx_pre[jj] = squared_dist(G, i_next_city, min_circuit[j+jj+1]);
+						}
+						vdSqrt(VVS,avx_ed,avx_ed);
+						vdSqrt(VVS,avx_pre,avx_pre);
+						#pragma omp simd
+						for(nd jj=0; jj<VVS; jj++) avx_ed[jj] = avx_ed[jj] + avx_pre[jj];
 #else
                                                 for(nd jj=0; jj<VVS; jj++) {
                                                         avx_ed[jj] = euclidean_dist(G, i_city, min_circuit[j+jj]) + euclidean_dist(G, i_next_city, min_circuit[j+jj+1]);
@@ -228,6 +240,11 @@ nd two_opt_max_swap(double** G, nd* min_circuit, nd cities, int num_procs, int n
                                         x[1] = squared_dist(G, i_next_city, j_next_city);
                                         y = sqrtd2(x);
                                         double s_dist = y[0] + y[1];
+#elif defined(__INTEL_COMPILER)
+					x[0] = squared_dist(G, i_city, j_city);
+					x[1] = squared_dist(G, i_next_city, j_next_city);
+					vdSqrt(2,x,y);
+					double s_dist = y[0] + y[1];
 #else
                                         double s_dist = euclidean_dist(G, i_city, j_city) + euclidean_dist(G, i_next_city, j_next_city);
 #endif
@@ -352,6 +369,12 @@ nd two_opt_max_swap(double** G, nd* min_circuit, nd cities, int num_procs, int n
         	                        y = sqrtd2(x);
                 	                precal_distance[ic] = y[0];
                         	        precal_distance[jc] = y[1];
+#elif defined(__INTEL_COMPILER)
+					x[0] = squared_dist(G, min_circuit[ic], min_circuit[ic+1]);
+					x[1] = squared_dist(G, min_circuit[jc], min_circuit[jc+1]);
+					vdSqrt(2,x,y);
+					precal_distance[ic] = y[0];
+					precal_distance[jc] = y[1];
 #else
                                 	precal_distance[ic] = euclidean_dist(G, min_circuit[ic], min_circuit[ic+1]);
 	                                precal_distance[jc] = euclidean_dist(G, min_circuit[jc], min_circuit[jc+1]);
