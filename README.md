@@ -27,6 +27,7 @@ The algorithm is generic for Many-core and Multi-core architectures.
 ## Multithread approaches
 
 |--__OpenMp__   -> Uses shared memory for inter-thread communication.
+
 |--__MPI__      -> Spawns multiple process and uses message passing for inter-process communication.
 
 ## BUILD:
@@ -55,7 +56,8 @@ $ make CC=mpicc OPT="-O3 -maltivec"
 $ 2opt <path-to-tsplib-input-file> [number-of-threads]
 ```
 _number-of-threads : Threads for execution (by default to number-of-cpu)._
-Note: Use 2opt_mpi everywhere for MPI based executable.
+
+**Note**: Use 2opt_mpi everywhere for MPI based executable.
 
 **Example:**
 ```sh
