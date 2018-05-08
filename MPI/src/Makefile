@@ -24,10 +24,6 @@ debug: 2opt
 2opt: $(DEP) src/hill_climb.c
 	$(CC) -o $@ $? $(FLAGS) -g -I./lib/ -Wall $(OPT) $(CFLAGS)
 
-2opt_mpi:
-	cd MPI && $(MAKE)
-
 clean:
 	rm -f $(objects)
-	cd MPI && $(MAKE) clean
 

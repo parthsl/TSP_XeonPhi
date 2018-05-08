@@ -1,15 +1,15 @@
+
 # PIHC
 #### Parallel Iterative Hill Climibing Algorithm for TSP heuristics problem.
 
 #### Project Goal:
-Optimisation of PIHC algorithm on various system architectures mainly on IBM POWER, Intel Xeon Phi, and also on Heterogeneous HPC Cluster. PIHC algorithm should produce output in optimal time with highest accuracy and efficiently utilise HPC systems.
+Optimisation of PIHC algorithm on various system architectures mainly on IBM POWER, Intel Xeon Phi,NVIDIA GPUs and also on Heterogeneous HPC Cluster. PIHC algorithm should produce output in optimal time with highest accuracy and efficiently utilise HPC systems.
 
 #### Project Outline:
-This project is used to solve any Combinatorial Problem or any NP-Hard problem and focus here is made on to the Travelling Salesman Problem. Circuit Desiging, Air-crew scheduling, Vehicle Routing, 3D rendering, and all complex combinatorial task can be mapped to TSP problem. Hence this problem is solved in a novel aa
-pproach of PIHC which gives better accuracy and time optimal results.
+This project is used to solve any Combinatorial Problem or any NP-Hard problem and focus here is made on to the Travelling Salesman Problem. Circuit Desiging, Air-crew scheduling, Vehicle Routing, 3D rendering, and all complex combinatorial task can be mapped to TSP problem. Hence this problem is solved in a novel approach of PIHC which gives better accuracy and time optimal results.
 
 #### TSP: 
-Given a set of cities and distance between them, aim is to travel all the given cities in minimal time exactly once and return back to the starting city. This problem is Graph Problem stated as
+Given a set of cities and distance between them, aim is to travel all the given cities in minimal time exactly once and return back to the starting city. This problem is Graph Problem stated as 
 
 > For given Graph G consisting of V vertices and E edges, the problem of finding closed path on the graph starting from a vertex and traveling through all the vertices exactly once and then returning back to the starting vertex is termed as Traveling Salesman Problem.
 
@@ -22,42 +22,29 @@ Algorithm is combination of two different approaches:
  2. **2opt:** For every pair of the edges, find if the swapping these egdes gives the benefit and how much. Pick the best benefit giving swap and swap the edges resulting in optimising tour by the picked swap benefit. See [2-opt method](https://en.wikipedia.org/wiki/2-opt).
 One such iteration makes result converge to optimal value, and hence doing so for several iterations unless not getting benefit results in most optimal value in Eulerian Circuit generated.
 
-The algorithm is generic for Many-core and Multi-core architectures.
-
-## Multithread approaches
-
-|--__OpenMp__   -> Uses shared memory for inter-thread communication.
-|--__MPI__      -> Spawns multiple process and uses message passing for inter-process communication.
-
 ## BUILD:
 
-For OpenMP based binary generation:
 ```sh
-$ make clean
-$ make CC=<compiler> OPT="<compiler-flags>"
+$ make clean 
+$ make CC=<compiler-binary-name> OPT="<compiler-optimisation-options>"
 ```
-
-For MPI based binary generation:
-```sh
-$ make clean
-$ make CC=<mpi-based-compiler> OPT="<compiler-flags> 2opt_mpi"
-```
-
 __Example:__
 ```sh
-$ make CC=mpicc OPT="-O3 -maltivec"
+$ make CC=gcc OPT="-O3 -maltivec"
 ```
+
 
 ## Execute:
 
-**Syntax**:
+**Syntax**: 
 ```sh
 $ 2opt <path-to-tsplib-input-file> [number-of-threads]
 ```
 _number-of-threads : Threads for execution (by default to number-of-cpu)._
-Note: Use 2opt_mpi everywhere for MPI based executable.
 
-**Example:**
+**Example:** 
 ```sh
 $ ./2opt input/pcb3038.tsp
 ```
+
+
