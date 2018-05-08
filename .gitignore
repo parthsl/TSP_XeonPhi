@@ -53,15 +53,3 @@ dkms.conf
 
 #Executable and binaries
 2opt*
-
-
-*.i
-*.ii
-*.gpu
-*.ptx
-*.cubin
-*.fatbin
-*.out
-*.swp
-2opt*
-*.dat

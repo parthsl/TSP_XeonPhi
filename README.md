@@ -1,13 +1,3 @@
-# TSP_XeonPhi
-## Various Techniques to optimize TSP on Xeon Phi Host Machines and also for comparing various related algortihms.
-
-### The repo is divied in two paths:
-- Sequential : Contains sequential codes for each algorithms.
-- Parallel   : Should contain OpenMP and/or MPICH version of the sequential codes.
-
-Each folder contains makefile to compile and clean the codes. 
-
-TSPLIB is used to verify algorithms in here. <a href="https://www.iwr.uni-heidelberg.de/groups/comopt/software/TSPLIB95/STSP.html">TSPLIB Optimal Values</a>
 
 # PIHC
 #### Parallel Iterative Hill Climibing Algorithm for TSP heuristics problem.
@@ -19,7 +9,7 @@ Optimisation of PIHC algorithm on various system architectures mainly on IBM POW
 This project is used to solve any Combinatorial Problem or any NP-Hard problem and focus here is made on to the Travelling Salesman Problem. Circuit Desiging, Air-crew scheduling, Vehicle Routing, 3D rendering, and all complex combinatorial task can be mapped to TSP problem. Hence this problem is solved in a novel approach of PIHC which gives better accuracy and time optimal results.
 
 #### TSP: 
-Given a set of cities and distance between them, aim is to travel all the given cities in minimal time exactly once and return back to the starting city. This problem is Graph Problem stated as
+Given a set of cities and distance between them, aim is to travel all the given cities in minimal time exactly once and return back to the starting city. This problem is Graph Problem stated as 
 
 > For given Graph G consisting of V vertices and E edges, the problem of finding closed path on the graph starting from a vertex and traveling through all the vertices exactly once and then returning back to the starting vertex is termed as Traveling Salesman Problem.
 
@@ -35,7 +25,7 @@ One such iteration makes result converge to optimal value, and hence doing so fo
 ## BUILD:
 
 ```sh
-$ make clean
+$ make clean 
 $ make CC=<compiler-binary-name> OPT="<compiler-optimisation-options>"
 ```
 __Example:__
@@ -46,13 +36,13 @@ $ make CC=gcc OPT="-O3 -maltivec"
 
 ## Execute:
 
-**Syntax**:
+**Syntax**: 
 ```sh
 $ 2opt <path-to-tsplib-input-file> [number-of-threads]
 ```
 _number-of-threads : Threads for execution (by default to number-of-cpu)._
 
-**Example:**
+**Example:** 
 ```sh
 $ ./2opt input/pcb3038.tsp
 ```
