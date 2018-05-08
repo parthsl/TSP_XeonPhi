@@ -41,7 +41,7 @@ $ make CC=<compiler> OPT="<compiler-flags>"
 For MPI based binary generation:
 ```sh
 $ make clean
-$ make CC=<mpi-based-compiler> OPT="<compiler-flags> 2opt_mpi"
+$ make CC=<mpi-based-compiler> OPT="<compiler-flags>" 2opt_mpi
 ```
 
 __Example:__
